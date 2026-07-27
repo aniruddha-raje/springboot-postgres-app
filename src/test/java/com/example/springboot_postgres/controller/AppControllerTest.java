@@ -2,11 +2,10 @@ package com.example.springboot_postgres.controller;
 
 import com.example.springboot_postgres.model.AppUser;
 import com.example.springboot_postgres.service.AppService;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -28,7 +27,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 /**
  * Web-layer unit tests for {@link AppController}. The {@link AppService} is
- * mocked with {@link MockBean}, so no database is involved and the write
+ * mocked with {@link MockitoBean}, so no database is involved and the write
  * operations (POST / PATCH / DELETE) never touch a real repository.
  */
 @WebMvcTest(AppController.class)
@@ -37,10 +36,7 @@ class AppControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
-    @Autowired
-    private ObjectMapper objectMapper;
-
-    @MockBean
+    @MockitoBean
     private AppService service;
 
     private AppUser newUser(Long id, String username, String email) {
@@ -102,13 +98,12 @@ class AppControllerTest {
 
     @Test
     void createAppUser_returns201AndBody() throws Exception {
-        AppUser request = newUser(null, "new_user", "new@gmail.com");
         AppUser saved = newUser(42L, "new_user", "new@gmail.com");
         when(service.createUser(any(AppUser.class))).thenReturn(saved);
 
         mockMvc.perform(post("/user")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
+                        .content("{\"username\":\"new_user\",\"email\":\"new@gmail.com\"}"))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").value(42))
                 .andExpect(jsonPath("$.username").value("new_user"));
@@ -122,14 +117,12 @@ class AppControllerTest {
 
     @Test
     void updateAppUser_whenFound_returns200AndUpdatedBody() throws Exception {
-        AppUser changes = new AppUser();
-        changes.setEmail("updated@gmail.com");
         AppUser updated = newUser(1L, "john_doe", "updated@gmail.com");
         when(service.updateUser(eq(1L), any(AppUser.class))).thenReturn(Optional.of(updated));
 
         mockMvc.perform(patch("/user/id/1")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(changes)))
+                        .content("{\"email\":\"updated@gmail.com\"}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.email").value("updated@gmail.com"));
 
@@ -138,13 +131,11 @@ class AppControllerTest {
 
     @Test
     void updateAppUser_whenMissing_returns404() throws Exception {
-        AppUser changes = new AppUser();
-        changes.setEmail("updated@gmail.com");
         when(service.updateUser(eq(999L), any(AppUser.class))).thenReturn(Optional.empty());
 
         mockMvc.perform(patch("/user/id/999")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(changes)))
+                        .content("{\"email\":\"updated@gmail.com\"}"))
                 .andExpect(status().isNotFound());
 
         verify(service).updateUser(eq(999L), any(AppUser.class));

@@ -2,11 +2,10 @@ package com.example.springboot_postgres.controller;
 
 import com.example.springboot_postgres.dto.Post;
 import com.example.springboot_postgres.service.JsonPlaceholderService;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
@@ -32,7 +31,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 /**
  * Web-layer unit tests for {@link PostController}. {@link JsonPlaceholderService}
- * is mocked with {@link MockBean}, so the tests never make a real call to
+ * is mocked with {@link MockitoBean}, so the tests never make a real call to
  * JSONPlaceholder — the external dependency is fully isolated.
  */
 @WebMvcTest(PostController.class)
@@ -41,10 +40,7 @@ class PostControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
-    @Autowired
-    private ObjectMapper objectMapper;
-
-    @MockBean
+    @MockitoBean
     private JsonPlaceholderService service;
 
     private Post newPost(Long userId, Long id, String title, String body) {
@@ -105,12 +101,11 @@ class PostControllerTest {
 
     @Test
     void createPost_returns201() throws Exception {
-        Post request = newPost(1L, null, "new title", "new body");
         when(service.createPost(any(Post.class))).thenReturn(newPost(1L, 101L, "new title", "new body"));
 
         mockMvc.perform(post("/posts")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
+                        .content("{\"userId\":1,\"title\":\"new title\",\"body\":\"new body\"}"))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").value(101));
 
@@ -126,7 +121,7 @@ class PostControllerTest {
 
         mockMvc.perform(put("/posts/1")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
+                        .content("{\"userId\":1,\"id\":1,\"title\":\"replaced\",\"body\":\"replaced body\"}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.title").value("replaced"));
 
