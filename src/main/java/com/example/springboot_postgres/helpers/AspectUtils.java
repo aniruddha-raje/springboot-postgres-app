@@ -12,8 +12,7 @@ import org.springframework.stereotype.Component;
 public class AspectUtils {
 
 
-//    @Around("@annotation(LogExecutionTime)")
-    @Around("execution(* com.example.springboot_postgres.service.AppService.getAllAppUsers(..)))")
+    @Around("@annotation(com.example.springboot_postgres.service.LogExecutionTime)")
     public Object executionTime(ProceedingJoinPoint point) throws Throwable {
         long startTime = System.currentTimeMillis();
         Object object = point.proceed();

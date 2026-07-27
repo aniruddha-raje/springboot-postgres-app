@@ -13,7 +13,13 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
     hibernate:
-      ddl-auto: update
+      # 'validate' only checks that the schema matches the entities; it never
+      # mutates the schema. The tables must already exist before startup, e.g.:
+      #   createdb twitter
+      #   (create the app_user, profile, post, role and user_role tables)
+      # To let Hibernate auto-create the schema for a quick local spin-up,
+      # temporarily switch this back to 'update'.
+      ddl-auto: validate
 #    show-sql: true
 
 # Management Endpoints
