@@ -5,9 +5,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 @Getter
@@ -25,17 +23,25 @@ public class AppUser {
     @Column(name = "email")
     private String email;
 
-    @JsonManagedReference
-    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    // No @JsonManagedReference here: Profile has no back-reference to AppUser
+    // (the relationship is one-directional), so there is no serialization cycle
+    // to break. A managed reference without a matching @JsonBackReference makes
+    // Jackson unable to deserialize AppUser (HTTP 415 on POST/PATCH).
+    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JoinColumn(name = "profile_id")
     private Profile profile;
 
+    // Modeled as a Set (not a List): when the entity graph fetches posts and
+    // roles together the SQL join produces a cartesian product, and a List/bag
+    // would keep the duplicated rows. A Set de-duplicates by entity identity.
     @JsonManagedReference
-    @OneToMany(mappedBy = "appUser", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-    private List<Post> posts = new ArrayList<>();
+    @OneToMany(mappedBy = "appUser", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private Set<Post> posts = new HashSet<>();
 
-    @JsonManagedReference
-    @ManyToMany(fetch = FetchType.EAGER)
+    // Many-to-many: both sides are collections, so @JsonManagedReference/
+    // @JsonBackReference cannot be used (a back-reference must be single-valued).
+    // The cycle is broken by @JsonIgnore on the inverse side (Role.appUsers).
+    @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
             name = "user_role",
             joinColumns = @JoinColumn(name = "user_id"),

@@ -1,6 +1,6 @@
 package com.example.springboot_postgres.model;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -20,7 +20,10 @@ public class Role {
 
     private String name;
 
-    @JsonBackReference
+    // Inverse side of the many-to-many. Ignored during (de)serialization to
+    // break the AppUser <-> Role cycle; a Set back-reference is not something
+    // Jackson's @JsonBackReference can handle.
+    @JsonIgnore
     @ManyToMany(mappedBy = "roles")
     private Set<AppUser> appUsers = new HashSet<>();
 }
