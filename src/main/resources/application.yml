@@ -22,6 +22,10 @@ spring:
       ddl-auto: validate
 #    show-sql: true
 
+# External integration (JSONPlaceholder /posts)
+app:
+  jsonPlaceholderUrl: https://jsonplaceholder.typicode.com/posts
+
 # Management Endpoints
 management:
   endpoints:
