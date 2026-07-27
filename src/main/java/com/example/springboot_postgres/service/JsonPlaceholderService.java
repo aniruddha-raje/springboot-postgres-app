@@ -44,7 +44,7 @@ public class JsonPlaceholderService {
 
     public List<Post> getPostsByUser(Long userId) {
         log.info("fetching posts for userId={}", userId);
-        String url = UriComponentsBuilder.fromHttpUrl(baseUrl)
+        String url = UriComponentsBuilder.fromUriString(baseUrl)
                 .queryParam("userId", userId)
                 .toUriString();
         return exchangeList(url);
