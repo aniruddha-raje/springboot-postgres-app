@@ -166,6 +166,14 @@ class AppControllerTest {
     }
 
     @Test
+    void nonNumericId_returns400() throws Exception {
+        mockMvc.perform(get("/user/id/abc"))
+                .andExpect(status().isBadRequest());
+
+        verify(service, never()).getUser(any());
+    }
+
+    @Test
     void getAllAppUsers_doesNotInvokeAnyWriteOperation() throws Exception {
         when(service.getAllAppUsers()).thenReturn(List.of());
 

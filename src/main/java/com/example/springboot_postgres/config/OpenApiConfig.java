@@ -12,7 +12,7 @@ public class OpenApiConfig {
     public OpenAPI apiInfo() {
         return new OpenAPI().info(new Info()
                 .title("Springboot Postgres API")
-                .description("Local user CRUD (JPA/Postgres) and JSONPlaceholder /posts integration.")
+                .description("Local users, profiles, posts and roles (JPA/Postgres), and a JSONPlaceholder /posts integration.")
                 .version("0.0.1"));
     }
 }

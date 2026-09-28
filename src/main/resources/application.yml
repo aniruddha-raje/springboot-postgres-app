@@ -8,9 +8,12 @@ spring:
 
   # Hibernate Configuration
   jpa:
+    # Don't keep a DB session open during response rendering. The repositories'
+    # entity graphs load everything the API serializes, so nothing needs it.
+    open-in-view: false
     properties:
       hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
+        # The Postgres dialect is detected from the connection automatically.
         format_sql: true
     hibernate:
       # 'validate' only checks that the schema matches the entities; it never
