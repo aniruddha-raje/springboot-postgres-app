@@ -14,7 +14,8 @@ public class SecurityConfig {
     @Bean
     public FilterRegistrationBean<JwtAuthFilter> jwtAuthFilter() {
         FilterRegistrationBean<JwtAuthFilter> registration = new FilterRegistrationBean<>(new JwtAuthFilter());
-        registration.addUrlPatterns("/user", "/user/*", "/posts", "/posts/*");
+        registration.addUrlPatterns("/user", "/user/*", "/post", "/post/*", "/role", "/role/*",
+                "/external-integration/posts", "/external-integration/posts/*");
         registration.setName("jwtAuthFilter");
         return registration;
     }

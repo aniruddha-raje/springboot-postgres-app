@@ -38,9 +38,9 @@ public class AppController {
 
     @Operation(summary = "Get a user by id")
     @GetMapping("/id/{appUserId}")
-    public ResponseEntity<AppUser> getAppUserById(@PathVariable String appUserId) {
+    public ResponseEntity<AppUser> getAppUserById(@PathVariable Long appUserId) {
         log.info("getAppUserById called with id={}", appUserId);
-        AppUser appUser = service.getUser(Long.valueOf(appUserId))
+        AppUser appUser = service.getUser(appUserId)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND, "AppUser not found with id " + appUserId));
         return new ResponseEntity<>(appUser, HttpStatus.OK);
@@ -56,10 +56,10 @@ public class AppController {
 
     @Operation(summary = "Partially update a user")
     @PatchMapping("/id/{appUserId}")
-    public ResponseEntity<AppUser> updateAppUser(@PathVariable String appUserId,
+    public ResponseEntity<AppUser> updateAppUser(@PathVariable Long appUserId,
                                                  @RequestBody AppUser changes) {
         log.info("updateAppUser called with id={}", appUserId);
-        AppUser updated = service.updateUser(Long.valueOf(appUserId), changes)
+        AppUser updated = service.updateUser(appUserId, changes)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND, "AppUser not found with id " + appUserId));
         return new ResponseEntity<>(updated, HttpStatus.OK);
@@ -67,9 +67,9 @@ public class AppController {
 
     @Operation(summary = "Delete a user")
     @DeleteMapping("/id/{appUserId}")
-    public ResponseEntity<Void> deleteAppUser(@PathVariable String appUserId) {
+    public ResponseEntity<Void> deleteAppUser(@PathVariable Long appUserId) {
         log.info("deleteAppUser called with id={}", appUserId);
-        if (!service.deleteUser(Long.valueOf(appUserId))) {
+        if (!service.deleteUser(appUserId)) {
             throw new ResponseStatusException(
                     HttpStatus.NOT_FOUND, "AppUser not found with id " + appUserId);
         }

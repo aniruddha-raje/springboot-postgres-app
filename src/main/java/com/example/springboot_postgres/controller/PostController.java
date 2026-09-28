@@ -1,7 +1,7 @@
 package com.example.springboot_postgres.controller;
 
-import com.example.springboot_postgres.dto.Post;
-import com.example.springboot_postgres.service.JsonPlaceholderService;
+import com.example.springboot_postgres.model.Post;
+import com.example.springboot_postgres.service.PostService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
@@ -13,74 +13,56 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
-import java.util.Map;
 
 /**
- * Demonstrates outbound integration with the JSONPlaceholder {@code /posts}
- * API. All calls are delegated to {@link JsonPlaceholderService}.
+ * Posts stored in the local database. Listing and creating go through the
+ * owning user; a single post is addressed by its own id.
  */
 @Slf4j
-@Tag(name = "Posts", description = "JSONPlaceholder /posts integration")
+@Tag(name = "Posts", description = "A user's posts (JPA/Postgres)")
 @RestController
-@RequestMapping("/posts")
 public class PostController {
 
     @Autowired
-    private JsonPlaceholderService jsonPlaceholderService;
+    PostService service;
 
-    @Operation(summary = "List all posts")
-    @GetMapping
-    public ResponseEntity<List<Post>> getAllPosts() {
-        log.info("getAllPosts called");
-        return new ResponseEntity<>(jsonPlaceholderService.getAllPosts(), HttpStatus.OK);
+    @Operation(summary = "List a user's posts")
+    @GetMapping("/user/id/{userId}/posts")
+    public ResponseEntity<List<Post>> getPostsByUser(@PathVariable Long userId) {
+        log.info("getPostsByUser called with userId={}", userId);
+        return new ResponseEntity<>(service.getPostsByUser(userId), HttpStatus.OK);
+    }
+
+    @Operation(summary = "Create a post for a user")
+    @PostMapping("/user/id/{userId}/posts")
+    public ResponseEntity<Post> createPost(@PathVariable Long userId, @RequestBody Post post) {
+        log.info("createPost called with userId={}", userId);
+        return new ResponseEntity<>(service.createPost(userId, post), HttpStatus.CREATED);
     }
 
     @Operation(summary = "Get a post by id")
-    @GetMapping("/{id}")
-    public ResponseEntity<Post> getPost(@PathVariable Long id) {
-        log.info("getPost called with id={}", id);
-        return new ResponseEntity<>(jsonPlaceholderService.getPost(id), HttpStatus.OK);
-    }
-
-    @Operation(summary = "List posts by user id")
-    @GetMapping("/user/{userId}")
-    public ResponseEntity<List<Post>> getPostsByUser(@PathVariable Long userId) {
-        log.info("getPostsByUser called with userId={}", userId);
-        return new ResponseEntity<>(jsonPlaceholderService.getPostsByUser(userId), HttpStatus.OK);
-    }
-
-    @Operation(summary = "Create a post")
-    @PostMapping
-    public ResponseEntity<Post> createPost(@RequestBody Post post) {
-        log.info("createPost called");
-        return new ResponseEntity<>(jsonPlaceholderService.createPost(post), HttpStatus.CREATED);
-    }
-
-    @Operation(summary = "Replace a post")
-    @PutMapping("/{id}")
-    public ResponseEntity<Post> replacePost(@PathVariable Long id, @RequestBody Post post) {
-        log.info("replacePost called with id={}", id);
-        return new ResponseEntity<>(jsonPlaceholderService.replacePost(id, post), HttpStatus.OK);
+    @GetMapping("/post/id/{postId}")
+    public ResponseEntity<Post> getPost(@PathVariable Long postId) {
+        log.info("getPost called with id={}", postId);
+        return new ResponseEntity<>(service.getPost(postId), HttpStatus.OK);
     }
 
     @Operation(summary = "Partially update a post")
-    @PatchMapping("/{id}")
-    public ResponseEntity<Post> patchPost(@PathVariable Long id, @RequestBody Map<String, Object> changes) {
-        log.info("patchPost called with id={}", id);
-        return new ResponseEntity<>(jsonPlaceholderService.patchPost(id, changes), HttpStatus.OK);
+    @PatchMapping("/post/id/{postId}")
+    public ResponseEntity<Post> updatePost(@PathVariable Long postId, @RequestBody Post changes) {
+        log.info("updatePost called with id={}", postId);
+        return new ResponseEntity<>(service.updatePost(postId, changes), HttpStatus.OK);
     }
 
     @Operation(summary = "Delete a post")
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deletePost(@PathVariable Long id) {
-        log.info("deletePost called with id={}", id);
-        jsonPlaceholderService.deletePost(id);
+    @DeleteMapping("/post/id/{postId}")
+    public ResponseEntity<Void> deletePost(@PathVariable Long postId) {
+        log.info("deletePost called with id={}", postId);
+        service.deletePost(postId);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 }
