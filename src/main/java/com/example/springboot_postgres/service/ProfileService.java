@@ -1,5 +1,6 @@
 package com.example.springboot_postgres.service;
 
+import com.example.springboot_postgres.dto.ProfileRequest;
 import com.example.springboot_postgres.model.AppUser;
 import com.example.springboot_postgres.model.Profile;
 import com.example.springboot_postgres.repository.AppUserRepository;
@@ -39,18 +40,18 @@ public class ProfileService {
     /** Creates the user's profile, or replaces its bio if one already exists. */
     @LogExecutionTime
     @Transactional
-    public Profile putProfile(Long userId, Profile changes) {
+    public Profile putProfile(Long userId, ProfileRequest request) {
         log.info("inside putProfile");
         AppUser user = findUser(userId);
         Profile profile = user.getProfile();
         if (profile == null) {
             profile = new Profile();
-            profile.setBio(changes.getBio());
+            profile.setBio(request.bio());
             profile = profileRepository.save(profile);
             // The user is managed, so the profile_id update is flushed on commit.
             user.setProfile(profile);
         } else {
-            profile.setBio(changes.getBio());
+            profile.setBio(request.bio());
         }
         return profile;
     }

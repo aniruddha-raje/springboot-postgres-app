@@ -1,8 +1,11 @@
 package com.example.springboot_postgres.controller;
 
+import com.example.springboot_postgres.config.OpenApiConfig;
+import com.example.springboot_postgres.dto.PostRequest;
 import com.example.springboot_postgres.model.Post;
 import com.example.springboot_postgres.service.PostService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +27,7 @@ import java.util.List;
  */
 @Slf4j
 @Tag(name = "Posts", description = "A user's posts (JPA/Postgres)")
+@SecurityRequirement(name = OpenApiConfig.BEARER_AUTH)
 @RestController
 public class PostController {
 
@@ -39,9 +43,9 @@ public class PostController {
 
     @Operation(summary = "Create a post for a user")
     @PostMapping("/user/id/{userId}/posts")
-    public ResponseEntity<Post> createPost(@PathVariable Long userId, @RequestBody Post post) {
+    public ResponseEntity<Post> createPost(@PathVariable Long userId, @RequestBody PostRequest request) {
         log.info("createPost called with userId={}", userId);
-        return new ResponseEntity<>(service.createPost(userId, post), HttpStatus.CREATED);
+        return new ResponseEntity<>(service.createPost(userId, request), HttpStatus.CREATED);
     }
 
     @Operation(summary = "Get a post by id")
@@ -53,7 +57,7 @@ public class PostController {
 
     @Operation(summary = "Partially update a post")
     @PatchMapping("/post/id/{postId}")
-    public ResponseEntity<Post> updatePost(@PathVariable Long postId, @RequestBody Post changes) {
+    public ResponseEntity<Post> updatePost(@PathVariable Long postId, @RequestBody PostRequest changes) {
         log.info("updatePost called with id={}", postId);
         return new ResponseEntity<>(service.updatePost(postId, changes), HttpStatus.OK);
     }

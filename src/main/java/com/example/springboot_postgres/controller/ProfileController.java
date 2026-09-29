@@ -1,8 +1,11 @@
 package com.example.springboot_postgres.controller;
 
+import com.example.springboot_postgres.config.OpenApiConfig;
+import com.example.springboot_postgres.dto.ProfileRequest;
 import com.example.springboot_postgres.model.Profile;
 import com.example.springboot_postgres.service.ProfileService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 /** A user's profile. Each user has at most one, so it is addressed through the user. */
 @Slf4j
 @Tag(name = "Profiles", description = "A user's profile (JPA/Postgres)")
+@SecurityRequirement(name = OpenApiConfig.BEARER_AUTH)
 @RestController
 @RequestMapping("/user/id/{userId}/profile")
 public class ProfileController {
@@ -35,9 +39,9 @@ public class ProfileController {
 
     @Operation(summary = "Create or replace a user's profile")
     @PutMapping
-    public ResponseEntity<Profile> putProfile(@PathVariable Long userId, @RequestBody Profile profile) {
+    public ResponseEntity<Profile> putProfile(@PathVariable Long userId, @RequestBody ProfileRequest request) {
         log.info("putProfile called with userId={}", userId);
-        return new ResponseEntity<>(service.putProfile(userId, profile), HttpStatus.OK);
+        return new ResponseEntity<>(service.putProfile(userId, request), HttpStatus.OK);
     }
 
     @Operation(summary = "Delete a user's profile")

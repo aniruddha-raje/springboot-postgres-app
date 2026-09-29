@@ -1,5 +1,6 @@
 package com.example.springboot_postgres.service;
 
+import com.example.springboot_postgres.dto.ProfileRequest;
 import com.example.springboot_postgres.model.AppUser;
 import com.example.springboot_postgres.model.Profile;
 import com.example.springboot_postgres.repository.AppUserRepository;
@@ -73,9 +74,7 @@ class ProfileServiceTest {
         Profile saved = profile("new bio");
         when(profileRepository.save(any(Profile.class))).thenReturn(saved);
 
-        Profile changes = new Profile();
-        changes.setBio("new bio");
-        Profile result = service.putProfile(1L, changes);
+        Profile result = service.putProfile(1L, new ProfileRequest("new bio"));
 
         assertSame(saved, result);
         // AppUser owns the one-to-one, so the link must be set on the user.
@@ -87,9 +86,7 @@ class ProfileServiceTest {
         Profile existing = profile("old bio");
         userWithProfile(existing);
 
-        Profile changes = new Profile();
-        changes.setBio("new bio");
-        Profile result = service.putProfile(1L, changes);
+        Profile result = service.putProfile(1L, new ProfileRequest("new bio"));
 
         assertSame(existing, result);
         assertEquals("new bio", existing.getBio());
