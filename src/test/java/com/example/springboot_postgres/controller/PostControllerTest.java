@@ -1,5 +1,6 @@
 package com.example.springboot_postgres.controller;
 
+import com.example.springboot_postgres.dto.PostRequest;
 import com.example.springboot_postgres.model.Post;
 import com.example.springboot_postgres.service.PostService;
 import org.junit.jupiter.api.Test;
@@ -16,6 +17,7 @@ import java.util.List;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -62,7 +64,7 @@ class PostControllerTest {
 
     @Test
     void createPost_returns201AndBody() throws Exception {
-        when(service.createPost(eq(1L), any(Post.class))).thenReturn(newPost(5L, "hello"));
+        when(service.createPost(eq(1L), any(PostRequest.class))).thenReturn(newPost(5L, "hello"));
 
         mockMvc.perform(post("/user/id/1/posts")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -71,7 +73,7 @@ class PostControllerTest {
                 .andExpect(jsonPath("$.id").value(5))
                 .andExpect(jsonPath("$.content").value("hello"));
 
-        verify(service).createPost(eq(1L), any(Post.class));
+        verify(service).createPost(eq(1L), any(PostRequest.class));
     }
 
     @Test
@@ -93,7 +95,7 @@ class PostControllerTest {
 
     @Test
     void updatePost_returns200AndBody() throws Exception {
-        when(service.updatePost(eq(5L), any(Post.class))).thenReturn(newPost(5L, "edited"));
+        when(service.updatePost(eq(5L), any(PostRequest.class))).thenReturn(newPost(5L, "edited"));
 
         mockMvc.perform(patch("/post/id/5")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -116,5 +118,39 @@ class PostControllerTest {
 
         mockMvc.perform(delete("/post/id/999"))
                 .andExpect(status().isNotFound());
+    }
+
+    // ---------------------------------------------------------------------
+    // Request bodies: the id comes from the server or the path, never the body
+    // ---------------------------------------------------------------------
+
+    @Test
+    void createPost_withIdInBody_returns400() throws Exception {
+        mockMvc.perform(post("/user/id/1/posts")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"id\":1,\"content\":\"hello\"}"))
+                .andExpect(status().isBadRequest());
+
+        verify(service, never()).createPost(any(), any());
+    }
+
+    @Test
+    void createPost_withJsonPlaceholderFields_returns400() throws Exception {
+        mockMvc.perform(post("/user/id/1/posts")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"title\":\"t\",\"body\":\"b\"}"))
+                .andExpect(status().isBadRequest());
+
+        verify(service, never()).createPost(any(), any());
+    }
+
+    @Test
+    void updatePost_withIdInBody_returns400() throws Exception {
+        mockMvc.perform(patch("/post/id/5")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"id\":6,\"content\":\"edited\"}"))
+                .andExpect(status().isBadRequest());
+
+        verify(service, never()).updatePost(any(), any());
     }
 }

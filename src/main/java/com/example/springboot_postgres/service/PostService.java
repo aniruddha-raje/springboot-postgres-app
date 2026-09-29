@@ -1,5 +1,6 @@
 package com.example.springboot_postgres.service;
 
+import com.example.springboot_postgres.dto.PostRequest;
 import com.example.springboot_postgres.helpers.Validation;
 import com.example.springboot_postgres.model.Post;
 import com.example.springboot_postgres.repository.AppUserRepository;
@@ -37,12 +38,12 @@ public class PostService {
 
     @LogExecutionTime
     @Transactional
-    public Post createPost(Long userId, Post post) {
+    public Post createPost(Long userId, PostRequest request) {
         log.info("inside createPost");
-        Validation.requireText(post.getContent(), "content");
+        Validation.requireText(request.content(), "content");
         requireUser(userId);
-        // Ignore any client-supplied id so a create can never overwrite an existing post.
-        post.setId(null);
+        Post post = new Post();
+        post.setContent(request.content());
         // A reference is enough to set the foreign key; no need to load the user.
         post.setAppUser(userRepository.getReferenceById(userId));
         return postRepository.save(post);
@@ -57,12 +58,12 @@ public class PostService {
     /** Partial update: only a non-null content is applied. */
     @LogExecutionTime
     @Transactional
-    public Post updatePost(Long postId, Post changes) {
+    public Post updatePost(Long postId, PostRequest changes) {
         log.info("inside updatePost");
-        Validation.rejectBlank(changes.getContent(), "content");
+        Validation.rejectBlank(changes.content(), "content");
         Post post = findPost(postId);
-        if (changes.getContent() != null) {
-            post.setContent(changes.getContent());
+        if (changes.content() != null) {
+            post.setContent(changes.content());
         }
         return post;
     }

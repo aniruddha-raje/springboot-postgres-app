@@ -1,5 +1,6 @@
 package com.example.springboot_postgres.service;
 
+import com.example.springboot_postgres.dto.RoleRequest;
 import com.example.springboot_postgres.helpers.Validation;
 import com.example.springboot_postgres.model.AppUser;
 import com.example.springboot_postgres.model.Role;
@@ -43,23 +44,23 @@ public class RoleService {
     }
 
     @LogExecutionTime
-    public Role createRole(Role role) {
+    public Role createRole(RoleRequest request) {
         log.info("inside createRole");
-        Validation.requireText(role.getName(), "name");
-        // Ignore any client-supplied id so a create can never overwrite an existing role.
-        role.setId(null);
+        Validation.requireText(request.name(), "name");
+        Role role = new Role();
+        role.setName(request.name());
         return roleRepository.save(role);
     }
 
     /** Partial update: only a non-null name is applied. */
     @LogExecutionTime
     @Transactional
-    public Role updateRole(Long roleId, Role changes) {
+    public Role updateRole(Long roleId, RoleRequest changes) {
         log.info("inside updateRole");
-        Validation.rejectBlank(changes.getName(), "name");
+        Validation.rejectBlank(changes.name(), "name");
         Role role = findRole(roleId);
-        if (changes.getName() != null) {
-            role.setName(changes.getName());
+        if (changes.name() != null) {
+            role.setName(changes.name());
         }
         return role;
     }

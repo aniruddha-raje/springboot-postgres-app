@@ -1,5 +1,6 @@
 package com.example.springboot_postgres.controller;
 
+import com.example.springboot_postgres.dto.ProfileRequest;
 import com.example.springboot_postgres.model.Profile;
 import com.example.springboot_postgres.service.ProfileService;
 import org.junit.jupiter.api.Test;
@@ -14,6 +15,7 @@ import org.springframework.web.server.ResponseStatusException;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -59,7 +61,7 @@ class ProfileControllerTest {
 
     @Test
     void putProfile_returns200AndBody() throws Exception {
-        when(service.putProfile(eq(1L), any(Profile.class))).thenReturn(newProfile(10L, "new bio"));
+        when(service.putProfile(eq(1L), any(ProfileRequest.class))).thenReturn(newProfile(10L, "new bio"));
 
         mockMvc.perform(put("/user/id/1/profile")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -67,7 +69,7 @@ class ProfileControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.bio").value("new bio"));
 
-        verify(service).putProfile(eq(1L), any(Profile.class));
+        verify(service).putProfile(eq(1L), any(ProfileRequest.class));
     }
 
     @Test
@@ -84,5 +86,19 @@ class ProfileControllerTest {
 
         mockMvc.perform(delete("/user/id/999/profile"))
                 .andExpect(status().isNotFound());
+    }
+
+    // ---------------------------------------------------------------------
+    // Request bodies: the id comes from the server or the path, never the body
+    // ---------------------------------------------------------------------
+
+    @Test
+    void putProfile_withIdInBody_returns400() throws Exception {
+        mockMvc.perform(put("/user/id/1/profile")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"id\":5,\"bio\":\"x\"}"))
+                .andExpect(status().isBadRequest());
+
+        verify(service, never()).putProfile(any(), any());
     }
 }

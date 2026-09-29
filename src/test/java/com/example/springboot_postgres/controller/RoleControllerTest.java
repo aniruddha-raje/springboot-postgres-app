@@ -1,5 +1,6 @@
 package com.example.springboot_postgres.controller;
 
+import com.example.springboot_postgres.dto.RoleRequest;
 import com.example.springboot_postgres.model.Role;
 import com.example.springboot_postgres.service.RoleService;
 import org.junit.jupiter.api.Test;
@@ -17,6 +18,7 @@ import java.util.Set;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -66,7 +68,7 @@ class RoleControllerTest {
 
     @Test
     void createRole_returns201AndBody() throws Exception {
-        when(service.createRole(any(Role.class))).thenReturn(newRole(3L, "EDITOR"));
+        when(service.createRole(any(RoleRequest.class))).thenReturn(newRole(3L, "EDITOR"));
 
         mockMvc.perform(post("/role")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -78,7 +80,7 @@ class RoleControllerTest {
 
     @Test
     void updateRole_returns200AndBody() throws Exception {
-        when(service.updateRole(eq(3L), any(Role.class))).thenReturn(newRole(3L, "WRITER"));
+        when(service.updateRole(eq(3L), any(RoleRequest.class))).thenReturn(newRole(3L, "WRITER"));
 
         mockMvc.perform(patch("/role/id/3")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -138,5 +140,29 @@ class RoleControllerTest {
 
         mockMvc.perform(delete("/user/id/999/roles/2"))
                 .andExpect(status().isNotFound());
+    }
+
+    // ---------------------------------------------------------------------
+    // Request bodies: the id comes from the server or the path, never the body
+    // ---------------------------------------------------------------------
+
+    @Test
+    void createRole_withIdInBody_returns400() throws Exception {
+        mockMvc.perform(post("/role")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"id\":1,\"name\":\"EDITOR\"}"))
+                .andExpect(status().isBadRequest());
+
+        verify(service, never()).createRole(any());
+    }
+
+    @Test
+    void updateRole_withIdInBody_returns400() throws Exception {
+        mockMvc.perform(patch("/role/id/3")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"id\":4,\"name\":\"WRITER\"}"))
+                .andExpect(status().isBadRequest());
+
+        verify(service, never()).updateRole(any(), any());
     }
 }

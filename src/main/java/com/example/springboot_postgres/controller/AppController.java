@@ -1,8 +1,11 @@
 package com.example.springboot_postgres.controller;
 
+import com.example.springboot_postgres.config.OpenApiConfig;
+import com.example.springboot_postgres.dto.UserRequest;
 import com.example.springboot_postgres.model.AppUser;
 import com.example.springboot_postgres.service.AppService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +25,7 @@ import java.util.List;
 
 @Slf4j
 @Tag(name = "Users", description = "Local user CRUD (JPA/Postgres)")
+@SecurityRequirement(name = OpenApiConfig.BEARER_AUTH)
 @RestController
 @RequestMapping("/user")
 public class AppController {
@@ -48,16 +52,16 @@ public class AppController {
 
     @Operation(summary = "Create a user")
     @PostMapping
-    public ResponseEntity<AppUser> createAppUser(@RequestBody AppUser appUser) {
+    public ResponseEntity<AppUser> createAppUser(@RequestBody UserRequest request) {
         log.info("createAppUser called");
-        AppUser created = service.createUser(appUser);
+        AppUser created = service.createUser(request);
         return new ResponseEntity<>(created, HttpStatus.CREATED);
     }
 
     @Operation(summary = "Partially update a user")
     @PatchMapping("/id/{appUserId}")
     public ResponseEntity<AppUser> updateAppUser(@PathVariable Long appUserId,
-                                                 @RequestBody AppUser changes) {
+                                                 @RequestBody UserRequest changes) {
         log.info("updateAppUser called with id={}", appUserId);
         AppUser updated = service.updateUser(appUserId, changes)
                 .orElseThrow(() -> new ResponseStatusException(

@@ -1,5 +1,6 @@
 package com.example.springboot_postgres.controller;
 
+import com.example.springboot_postgres.dto.UserRequest;
 import com.example.springboot_postgres.model.AppUser;
 import com.example.springboot_postgres.service.AppService;
 import org.junit.jupiter.api.Test;
@@ -99,7 +100,7 @@ class AppControllerTest {
     @Test
     void createAppUser_returns201AndBody() throws Exception {
         AppUser saved = newUser(42L, "new_user", "new@gmail.com");
-        when(service.createUser(any(AppUser.class))).thenReturn(saved);
+        when(service.createUser(any(UserRequest.class))).thenReturn(saved);
 
         mockMvc.perform(post("/user")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -108,7 +109,7 @@ class AppControllerTest {
                 .andExpect(jsonPath("$.id").value(42))
                 .andExpect(jsonPath("$.username").value("new_user"));
 
-        verify(service, times(1)).createUser(any(AppUser.class));
+        verify(service, times(1)).createUser(any(UserRequest.class));
     }
 
     // ---------------------------------------------------------------------
@@ -118,7 +119,7 @@ class AppControllerTest {
     @Test
     void updateAppUser_whenFound_returns200AndUpdatedBody() throws Exception {
         AppUser updated = newUser(1L, "john_doe", "updated@gmail.com");
-        when(service.updateUser(eq(1L), any(AppUser.class))).thenReturn(Optional.of(updated));
+        when(service.updateUser(eq(1L), any(UserRequest.class))).thenReturn(Optional.of(updated));
 
         mockMvc.perform(patch("/user/id/1")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -126,19 +127,19 @@ class AppControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.email").value("updated@gmail.com"));
 
-        verify(service).updateUser(eq(1L), any(AppUser.class));
+        verify(service).updateUser(eq(1L), any(UserRequest.class));
     }
 
     @Test
     void updateAppUser_whenMissing_returns404() throws Exception {
-        when(service.updateUser(eq(999L), any(AppUser.class))).thenReturn(Optional.empty());
+        when(service.updateUser(eq(999L), any(UserRequest.class))).thenReturn(Optional.empty());
 
         mockMvc.perform(patch("/user/id/999")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"email\":\"updated@gmail.com\"}"))
                 .andExpect(status().isNotFound());
 
-        verify(service).updateUser(eq(999L), any(AppUser.class));
+        verify(service).updateUser(eq(999L), any(UserRequest.class));
     }
 
     // ---------------------------------------------------------------------
@@ -183,5 +184,39 @@ class AppControllerTest {
         verify(service, never()).createUser(any());
         verify(service, never()).updateUser(any(), any());
         verify(service, never()).deleteUser(any());
+    }
+
+    // ---------------------------------------------------------------------
+    // Request bodies: the id comes from the server or the path, never the body
+    // ---------------------------------------------------------------------
+
+    @Test
+    void createAppUser_withIdInBody_returns400() throws Exception {
+        mockMvc.perform(post("/user")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"id\":1,\"username\":\"new_user\"}"))
+                .andExpect(status().isBadRequest());
+
+        verify(service, never()).createUser(any());
+    }
+
+    @Test
+    void createAppUser_withNestedData_returns400() throws Exception {
+        mockMvc.perform(post("/user")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"username\":\"new_user\",\"profile\":{\"bio\":\"x\"}}"))
+                .andExpect(status().isBadRequest());
+
+        verify(service, never()).createUser(any());
+    }
+
+    @Test
+    void updateAppUser_withIdInBody_returns400() throws Exception {
+        mockMvc.perform(patch("/user/id/1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"id\":2,\"email\":\"x@gmail.com\"}"))
+                .andExpect(status().isBadRequest());
+
+        verify(service, never()).updateUser(any(), any());
     }
 }
